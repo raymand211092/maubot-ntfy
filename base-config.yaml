@@ -1,1 +1,6 @@
+# command prefix for all of this bot's commands, must be prefixed with a ! in matrix
 command_prefix: ntfy
+
+# users who can always control this bot
+admins:
+  - "@admin:example.com"

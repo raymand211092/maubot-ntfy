@@ -6,7 +6,8 @@ from typing import Any, List, Tuple
 from aiohttp import ClientTimeout
 from maubot import MessageEvent, Plugin
 from maubot.handlers import command
-from mautrix.types import Format, MessageType, TextMessageEventContent
+from mautrix.types import (EventType, Format, MessageType,
+                           TextMessageEventContent)
 from mautrix.util.async_db import UpgradeTable
 from mautrix.util.config import BaseProxyConfig
 from mautrix.util.formatter import parse_html
@@ -55,6 +56,16 @@ class NtfyBot(Plugin):
                 self.log.exception("Subscription task errored", exc_info=exc)
         self.tasks[:] = []
 
+    async def can_use_command(self, evt: MessageEvent) -> bool:
+        if evt.sender in self.config["admins"]:
+            return True
+        levels = await self.client.get_state_event(evt.room_id, EventType.ROOM_POWER_LEVELS)
+        user_level = levels.get_user_level(evt.sender)
+        if user_level < 50:
+            await evt.reply("You don't have the permission to manage ntfy subscriptions in this room.")
+            return False
+        return True
+
     @command.new(name=lambda self: self.config["command_prefix"], help="Manage ntfy subscriptions.", require_subcommand=True)
     async def ntfy(self) -> None:
         pass
@@ -63,6 +74,8 @@ class NtfyBot(Plugin):
     @command.argument("topic", "topic URL", matches="(([a-zA-Z0-9-]{1,63}\\.)+[a-zA-Z]{2,6}/[a-zA-Z0-9_-]{1,64})")
     async def subscribe(self, evt: MessageEvent, topic: Tuple[str, Any]) -> None:
         # see https://github.com/binwiederhier/ntfy/blob/82df434d19e3ef45ada9c00dfe9fc0f8dfba15e6/server/server.go#L61 for the valid topic regex
+        if not await self.can_use_command(evt):
+            return None
         server, topic = topic[0].split("/")
         db_topic = await self.db.get_topic(server, topic)
         is_fresh_topic = False
@@ -82,6 +95,8 @@ class NtfyBot(Plugin):
     @command.argument("topic", "topic URL", matches="(([a-zA-Z0-9-]{1,63}\\.)+[a-zA-Z]{2,6}/[a-zA-Z0-9_-]{1,64})")
     async def unsubscribe(self, evt: MessageEvent, topic: Tuple[str, Any]) -> None:
         # see https://github.com/binwiederhier/ntfy/blob/82df434d19e3ef45ada9c00dfe9fc0f8dfba15e6/server/server.go#L61 for the valid topic regex
+        if not await self.can_use_command(evt):
+            return None
         server, topic = topic[0].split("/")
         db_topic = await self.db.get_topic(server, topic)
         if not db_topic:
