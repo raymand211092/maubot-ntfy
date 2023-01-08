@@ -5,7 +5,13 @@ build:
   image: dock.mau.dev/maubot/maubot:latest
   stage: build
   script:
-    - mbc build
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        VERSION="$CI_COMMMIT_TAG"
+      else
+        VERSION="$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+      fi
+    - mbc build -o cloud.catgirl.ntfy-$VERSION.mbp
   artifacts:
     paths:
       - "*.mbp"
