@@ -78,10 +78,9 @@ class NtfyBot(Plugin):
             return None
         server, topic = topic[0].split("/")
         db_topic = await self.db.get_topic(server, topic)
-        is_fresh_topic = False
         if not db_topic:
             db_topic = await self.db.create_topic(Topic(id=-1, server=server, topic=topic, last_event_id=None))
-            is_fresh_topic = True
+        existing_subscriptions = await self.db.get_subscriptions(db_topic.id)
         sub, _ = await self.db.get_subscription(db_topic.id, evt.room_id)
         if sub:
             await evt.reply("This room is already subscribed to %s/%s", server, topic)
@@ -89,7 +88,7 @@ class NtfyBot(Plugin):
             await self.db.add_subscription(db_topic.id, evt.room_id)
             await evt.reply("Subscribed this room to %s/%s", server, topic)
             await evt.react("✅")
-            if is_fresh_topic:
+            if not existing_subscriptions:
                 await self.subscribe_to_topic(db_topic)
 
     @ntfy.subcommand("unsubscribe", aliases=("unsub"), help="Unsubscribe this room from a ntfy topic.")
