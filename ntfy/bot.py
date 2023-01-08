@@ -71,7 +71,7 @@ class NtfyBot(Plugin):
     async def ntfy(self) -> None:
         pass
 
-    @ntfy.subcommand("subscribe", aliases=("sub"), help="Subscribe this room to a ntfy topic.")
+    @ntfy.subcommand("subscribe", aliases=("sub",), help="Subscribe this room to a ntfy topic.")
     @command.argument("topic", "topic URL", matches="(([a-zA-Z0-9-]{1,63}\\.)+[a-zA-Z]{2,6}/[a-zA-Z0-9_-]{1,64})")
     async def subscribe(self, evt: MessageEvent, topic: Tuple[str, Any]) -> None:
         # see https://github.com/binwiederhier/ntfy/blob/82df434d19e3ef45ada9c00dfe9fc0f8dfba15e6/server/server.go#L61 for the valid topic regex
@@ -92,7 +92,7 @@ class NtfyBot(Plugin):
             if not existing_subscriptions:
                 await self.subscribe_to_topic(db_topic)
 
-    @ntfy.subcommand("unsubscribe", aliases=("unsub"), help="Unsubscribe this room from a ntfy topic.")
+    @ntfy.subcommand("unsubscribe", aliases=("unsub",), help="Unsubscribe this room from a ntfy topic.")
     @command.argument("topic", "topic URL", matches="(([a-zA-Z0-9-]{1,63}\\.)+[a-zA-Z]{2,6}/[a-zA-Z0-9_-]{1,64})")
     async def unsubscribe(self, evt: MessageEvent, topic: Tuple[str, Any]) -> None:
         # see https://github.com/binwiederhier/ntfy/blob/82df434d19e3ef45ada9c00dfe9fc0f8dfba15e6/server/server.go#L61 for the valid topic regex
