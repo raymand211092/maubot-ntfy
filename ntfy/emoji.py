@@ -5,6 +5,7 @@ from mautrix.util.logging import TraceLogger
 
 try:
     import emoji
+    EMOJI_FALLBACK = False
 except ImportError:
     # basic list of supported emoji, based on https://docs.ntfy.sh/publish/#tags-emojis
     emoji_dict = {
@@ -26,20 +27,21 @@ except ImportError:
         "white_check_mark": "✅",
     }
     emoji = SimpleNamespace()
-    emoji.emojize = lambda e: emoji_dict.get(e[1:-1], e)
+    emoji.emojize = lambda e, **kwargs: emoji_dict.get(e[1:-1], e)
     emoji.is_emoji = lambda e: e in emoji_dict.values()
+    EMOJI_FALLBACK = True
 
-WHITE_CHECK_MARK = emoji.emojize(":white_check_mark:")
+WHITE_CHECK_MARK = emoji.emojize(":white_check_mark:", language="alias")
 
 
 def parse_tags(log: TraceLogger, tags: List[str]) -> Tuple[List[str], List[str]]:
-    if emoji is None:
+    if EMOJI_FALLBACK:
         log.warn("Please install the `emoji` package for full emoji support")
     emojis = []
     non_emoji_tags = []
 
     for tag in tags:
-        emojized = emoji.emojize(f":{tag}:")
+        emojized = emoji.emojize(f":{tag}:", language="alias")
         if emoji.is_emoji(emojized):
             emojis.append(emojized)
         else:

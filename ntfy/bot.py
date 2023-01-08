@@ -14,7 +14,7 @@ from mautrix.util.formatter import parse_html
 
 from .config import Config
 from .db import DB, Topic, upgrade_table
-from .emoji import parse_tags, WHITE_CHECK_MARK
+from .emoji import EMOJI_FALLBACK, WHITE_CHECK_MARK, parse_tags
 
 
 class NtfyBot(Plugin):
@@ -26,6 +26,9 @@ class NtfyBot(Plugin):
         await super().start()
         self.config.load_and_update()
         self.db = DB(self.database, self.log)
+        if EMOJI_FALLBACK:
+            self.log.warn(
+                "Please install the `emoji` package for full emoji support")
         await self.resubscribe()
 
     async def stop(self) -> None:
