@@ -1,0 +1,12 @@
+stages:
+  - build
+
+build:
+  image: dock.mau.dev/maubot/maubot:latest
+  stage: build
+  script:
+    - mbc build
+  artifacts:
+    paths:
+      - "*.mbp"
+    expire_in: "1 month"
