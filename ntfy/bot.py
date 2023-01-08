@@ -14,6 +14,7 @@ from mautrix.util.formatter import parse_html
 
 from .config import Config
 from .db import DB, Topic, upgrade_table
+from .emoji import parse_tags, WHITE_CHECK_MARK
 
 
 class NtfyBot(Plugin):
@@ -87,7 +88,7 @@ class NtfyBot(Plugin):
         else:
             await self.db.add_subscription(db_topic.id, evt.room_id)
             await evt.reply("Subscribed this room to %s/%s", server, topic)
-            await evt.react("✅")
+            await evt.react(WHITE_CHECK_MARK)
             if not existing_subscriptions:
                 await self.subscribe_to_topic(db_topic)
 
@@ -108,7 +109,7 @@ class NtfyBot(Plugin):
             return
         await self.db.remove_subscription(db_topic.id, evt.room_id)
         await evt.reply("Unsubscribed this room from %s/%s", server, topic)
-        await evt.react("✅")
+        await evt.react(WHITE_CHECK_MARK)
 
     async def subscribe_to_topics(self) -> None:
         topics = await self.db.get_topics()
@@ -170,8 +171,7 @@ class NtfyBot(Plugin):
                         self.log.exception(
                             "Failed to send matrix message!", exc_info=exc)
 
-    @classmethod
-    def build_message_content(cls, server: str, message) -> str:
+    def build_message_content(self, server: str, message) -> str:
         topic = message["topic"]
         body = message["message"]
         title = message.get("title", None)
@@ -179,21 +179,35 @@ class NtfyBot(Plugin):
         click = message.get("click", None)
         attachment = message.get("attachment", None)
 
+        if tags:
+            (emoji, non_emoji) = parse_tags(self.log, tags)
+            emoji = "".join(emoji) + " "
+            tags = ", ".join(non_emoji)
+        else:
+            emoji = tags = ""
+
         html_content = "<span>Ntfy message in topic <code>%s/%s</code></span><blockquote>" % (
             html.escape(server), html.escape(topic))
         # build title
         if title and click:
-            html_content += "<h4><a href=\"%s\">%s</a></h4>" % (
-                html.escape(click), html.escape(title))
+            html_content += "<h4>%s<a href=\"%s\">%s</a></h4>" % (
+                emoji, html.escape(click), html.escape(title))
+            emoji = ""
         elif title:
-            html_content += "<h4>%s</h4>" % html.escape(title)
+            html_content += "<h4>%s%s</h4>" % (emoji, html.escape(title))
+            emoji = ""
 
         # build body
         if click and not title:
-            html_content += "<a href=\"%s\">%s</a>" % (html.escape(
-                click), html.escape(body).replace("\n", "<br />"))
+            html_content += "%s<a href=\"%s\">%s</a>" % (
+                emoji, html.escape(click), html.escape(body).replace("\n", "<br />"))
         else:
-            html_content += html.escape(body).replace("\n", "<br />")
+            html_content += emoji + html.escape(body).replace("\n", "<br />")
+
+        # add non-emoji tags
+        if tags:
+            html_content += "<br/><small>Tags: <code>%s</code></small>" % html.escape(
+                tags)
 
         # build attachment
         if attachment:

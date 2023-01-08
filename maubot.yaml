@@ -12,3 +12,6 @@ database_type: asyncpg
 config: true
 extra_files:
   - base-config.yaml
+
+soft_dependencies:
+  - "emoji>=2.0"
