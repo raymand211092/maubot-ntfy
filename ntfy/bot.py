@@ -88,6 +88,7 @@ class NtfyBot(Plugin):
         else:
             await self.db.add_subscription(db_topic.id, evt.room_id)
             await evt.reply("Subscribed this room to %s/%s", server, topic)
+            await evt.react("✅")
             if is_fresh_topic:
                 await self.subscribe_to_topic(db_topic)
 
@@ -108,6 +109,7 @@ class NtfyBot(Plugin):
             return
         await self.db.remove_subscription(db_topic.id, evt.room_id)
         await evt.reply("Unsubscribed this room from %s/%s", server, topic)
+        await evt.react("✅")
 
     async def subscribe_to_topics(self) -> None:
         topics = await self.db.get_topics()
