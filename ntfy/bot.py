@@ -149,10 +149,11 @@ class NtfyBot(Plugin):
                 line = await resp.content.readline()
                 # convert to string and remove trailing newline
                 line = line.decode("utf-8").strip()
-                self.log.debug("Received notification: %s", line)
+                self.log.trace("Received notification: %s", line)
                 message = json.loads(line)
                 if message["event"] != "message":
                     continue
+                self.log.debug("Received message event: %s", line)
                 # persist the received message id
                 await self.db.update_topic_id(topic.id, message["id"])
 
