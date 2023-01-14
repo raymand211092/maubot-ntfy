@@ -128,7 +128,10 @@ class NtfyBot(Plugin):
                 exc = task.exception()
                 self.log.exception(
                     "Subscription task errored, resubscribing", exc_info=exc)
-                self.subscribe_to_topic(topic)
+                self.tasks[topic.id] = self.loop.create_task(
+                    asyncio.sleep(10.0))
+                self.tasks[topic.id].add_done_callback(
+                    lambda _: self.subscribe_to_topic(topic))
 
         self.log.info("Subscribing to %s/%s", topic.server, topic.topic)
         url = "%s/%s/json" % (topic.server, topic.topic)
