@@ -93,7 +93,7 @@ class NtfyBot(Plugin):
             await evt.reply("Subscribed this room to %s/%s", server, topic)
             await evt.react(WHITE_CHECK_MARK)
             if not existing_subscriptions:
-                await self.subscribe_to_topic(db_topic)
+                self.subscribe_to_topic(db_topic)
 
     @ntfy.subcommand("unsubscribe", aliases=("unsub",), help="Unsubscribe this room from a ntfy topic.")
     @command.argument("topic", "topic URL", matches="(([a-zA-Z0-9-]{1,63}\\.)+[a-zA-Z]{2,6}/[a-zA-Z0-9_-]{1,64})")
