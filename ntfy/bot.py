@@ -111,6 +111,9 @@ class NtfyBot(Plugin):
             await evt.reply("This room is not subscribed to %s/%s", server, topic)
             return
         await self.db.remove_subscription(db_topic.id, evt.room_id)
+        if not await self.db.get_subscriptions(db_topic.id):
+            self.tasks[db_topic.id].cancel()
+            await self.db.clear_topic_id(db_topic.id)
         await evt.reply("Unsubscribed this room from %s/%s", server, topic)
         await evt.react(WHITE_CHECK_MARK)
 

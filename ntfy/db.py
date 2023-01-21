@@ -111,6 +111,12 @@ class DB:
         """
         await self.db.execute(query, topic_id, event_id)
 
+    async def clear_topic_id(self, topic_id: int) -> None:
+        query = """
+        UPDATE topics SET last_event_id=NULL where id=$1
+        """
+        await self.db.execute(query, topic_id)
+
     async def create_topic(self, topic: Topic) -> Topic:
         query = """
         INSERT INTO topics (server, topic, last_event_id)
